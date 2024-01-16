@@ -74,3 +74,5 @@ blocks:
             - '  https://registry.hub.docker.com/v2/demo:latest'
             - docker push \
             - '  https://registry.hub.docker.com/v2/demo:latest'
+      secrets:
+        - name: Docker Hub Secret
