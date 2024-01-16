@@ -11,6 +11,10 @@ global_job_config:
   # Connect secret to all jobs in the pipeline
   secrets:
     - name: Docker Hub Secret
+  prologue:
+  # Execute at the start of every job in the pipeline
+    commands:
+      - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
 
 blocks:
   - name: Docker Build
