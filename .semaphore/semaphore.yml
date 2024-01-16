@@ -8,6 +8,7 @@ global_job_config:
   prologue:
     commands:
       - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+      
 blocks:
   - name: Build
     task:
