@@ -4,6 +4,10 @@ agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu2004
+global_job_config:
+  prologue:
+    commands:
+      - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
 blocks:
   - name: Build
     task:
@@ -12,16 +16,18 @@ blocks:
           commands:
             - checkout
             - docker login \
-            - '  -u $SEMAPHORE_REGISTRY_USERNAME \'
-            - '  -p $SEMAPHORE_REGISTRY_PASSWORD \'
-            - '  $SEMAPHORE_REGISTRY_URL'
+            - '  -u $DOCKERHUB_USERNAME \'
+            - '  -p $DOCKERHUB_PASSWORD \'
+            - '  https://registry.hub.docker.com/v2'
             - docker pull \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:latest || true'
+            - '  https://registry.hub.docker.com/v2/demo:latest || true'
             - docker build \
-            - '  --cache-from $SEMAPHORE_REGISTRY_URL/demo:latest \'
-            - '  -t $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID .'
+            - '  --cache-from https://registry.hub.docker.com/v2/demo:latest \'
+            - '  -t https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID .'
             - docker push \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID'
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID'
+      secrets:
+        - name: Docker Hub Secret
   - name: Tests
     task:
       prologue:
@@ -36,22 +42,22 @@ blocks:
         - name: Unit test
           commands:
             - docker run -it \
-            - '$SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - npm run lint
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
+            - '  npm run lint'
         - name: Functional test
           commands:
             - sem-service start postgres
             - docker run --net=host -it \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID \'
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
             - '  npm run ping'
             - docker run --net=host -it \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID \'
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
             - '  npm run migrate'
         - name: Integration test
           commands:
             - sem-service start postgres
             - docker run --net=host -it \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID \'
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
             - '  npm run test'
   - name: Push
     task:
@@ -59,12 +65,12 @@ blocks:
         - name: Push
           commands:
             - docker login \
-            - '  -u $SEMAPHORE_REGISTRY_USERNAME \'
-            - '  -p $SEMAPHORE_REGISTRY_PASSWORD $SEMAPHORE_REGISTRY_URL'
+            - '  -u $DOCKERHUB_USERNAME \'
+            - '  -p $DOCKERHUB_PASSWORD https://registry.hub.docker.com/v2'
             - docker pull \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID'
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID'
             - docker tag \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - '  $SEMAPHORE_REGISTRY_URL/demo:latest'
+            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
+            - '  https://registry.hub.docker.com/v2/demo:latest'
             - docker push \
-            - '  $SEMAPHORE_REGISTRY_URL/demo:latest'
+            - '  https://registry.hub.docker.com/v2/demo:latest'
