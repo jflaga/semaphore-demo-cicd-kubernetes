@@ -7,6 +7,11 @@ agent:
     type: e1-standard-2
     os_image: ubuntu1804
 
+global_job_config:
+  # Connect secret to all jobs in the pipeline
+  secrets:
+    - name: Docker Hub Secret
+
 blocks:
   - name: Docker Build
     task:
