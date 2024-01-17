@@ -4,12 +4,10 @@ agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu2004
-
 global_job_config:
   prologue:
     commands:
       - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
-      
 blocks:
   - name: Build
     task:
@@ -17,10 +15,6 @@ blocks:
         - name: docker build
           commands:
             - checkout
-            - docker login \
-            - '  -u $DOCKERHUB_USERNAME \'
-            - '  -p $DOCKERHUB_PASSWORD \'
-            - '  https://registry.hub.docker.com/v2'
             - docker pull \
             - '  https://registry.hub.docker.com/v2/demo:latest || true'
             - docker build \
@@ -66,9 +60,6 @@ blocks:
       jobs:
         - name: Push
           commands:
-            - docker login \
-            - '  -u $DOCKERHUB_USERNAME \'
-            - '  -p $DOCKERHUB_PASSWORD https://registry.hub.docker.com/v2'
             - docker pull \
             - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID'
             - docker tag \
