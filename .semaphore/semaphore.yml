@@ -4,10 +4,6 @@ agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu2004
-global_job_config:
-  prologue:
-    commands:
-      - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
 blocks:
   - name: Build
     task:
@@ -15,36 +11,42 @@ blocks:
         - name: docker build
           commands:
             - checkout
-            - docker pull jflaga/demo:latest || true
-            - docker build --cache-from jflaga/demo:latest -t jflaga/demo:$SEMAPHORE_WORKFLOW_ID .
-            - docker push jflaga/demo:$SEMAPHORE_WORKFLOW_ID
+            - 'docker pull jflaga/demo:latest || true'
+            - 'docker build --cache-from jflaga/demo:latest -t jflaga/demo:$SEMAPHORE_WORKFLOW_ID .'
+            - 'docker push jflaga/demo:$SEMAPHORE_WORKFLOW_ID'
       secrets:
         - name: Docker Hub Secret
+      prologue:
+        commands:
+          - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
   - name: Tests
     task:
       prologue:
         commands:
-          - docker pull jflaga/demo:$SEMAPHORE_WORKFLOW_ID
+          - 'docker pull jflaga/demo:$SEMAPHORE_WORKFLOW_ID'
       jobs:
         - name: Unit test
           commands:
-            - docker run -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run lint
+            - 'docker run -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run lint'
         - name: Functional test
           commands:
             - sem-service start postgres
-            - docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run ping
-            - docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run migrate
+            - 'docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run ping'
+            - 'docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run migrate'
         - name: Integration test
           commands:
             - sem-service start postgres
-            - docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run test
+            - 'docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run test'
   - name: Push
     task:
       jobs:
         - name: Push
           commands:
-            - docker pull jflaga/demo:$SEMAPHORE_WORKFLOW_ID
-            - docker tag jflaga/demo:$SEMAPHORE_WORKFLOW_ID jflaga/demo:latest
-            - docker push jflaga/demo:latest
+            - 'docker pull jflaga/demo:$SEMAPHORE_WORKFLOW_ID'
+            - 'docker tag jflaga/demo:$SEMAPHORE_WORKFLOW_ID jflaga/demo:latest'
+            - 'docker push jflaga/demo:latest'
       secrets:
         - name: Docker Hub Secret
+      prologue:
+        commands:
+          - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
