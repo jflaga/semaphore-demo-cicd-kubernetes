@@ -18,7 +18,7 @@ blocks:
         - name: Docker Hub Secret
       prologue:
         commands:
-          - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+          - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
   - name: Tests
     task:
       prologue:
@@ -49,4 +49,4 @@ blocks:
         - name: Docker Hub Secret
       prologue:
         commands:
-          - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+          - echo $DOCKERHUB_PASSWORD | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
