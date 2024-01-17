@@ -15,7 +15,7 @@ blocks:
         - name: docker build
           commands:
             - checkout
-            - docker pull jflaga/demo:latest || true'
+            - docker pull jflaga/demo:latest || true
             - docker build --cache-from jflaga/demo:latest -t jflaga/demo:$SEMAPHORE_WORKFLOW_ID .
             - docker push jflaga/demo:$SEMAPHORE_WORKFLOW_ID
       secrets:
