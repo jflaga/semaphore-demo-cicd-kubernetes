@@ -15,57 +15,36 @@ blocks:
         - name: docker build
           commands:
             - checkout
-            - docker pull \
-            - '  https://registry.hub.docker.com/v2/demo:latest || true'
-            - docker build \
-            - '  --cache-from https://registry.hub.docker.com/v2/demo:latest \'
-            - '  -t https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID .'
-            - docker push \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID'
+            - docker pull jflaga/demo:latest || true'
+            - docker build --cache-from jflaga/demo:latest -t jflaga/demo:$SEMAPHORE_WORKFLOW_ID .
+            - docker push jflaga/demo:$SEMAPHORE_WORKFLOW_ID
       secrets:
         - name: Docker Hub Secret
   - name: Tests
     task:
       prologue:
         commands:
-          - docker login \
-          - '  -u $SEMAPHORE_REGISTRY_USERNAME \'
-          - '  -p $SEMAPHORE_REGISTRY_PASSWORD \'
-          - '  $SEMAPHORE_REGISTRY_URL'
-          - docker pull \
-          - '  $SEMAPHORE_REGISTRY_URL/demo:$SEMAPHORE_WORKFLOW_ID'
+          - docker pull jflaga/demo:$SEMAPHORE_WORKFLOW_ID
       jobs:
         - name: Unit test
           commands:
-            - docker run -it \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - '  npm run lint'
+            - docker run -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run lint
         - name: Functional test
           commands:
             - sem-service start postgres
-            - docker run --net=host -it \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - '  npm run ping'
-            - docker run --net=host -it \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - '  npm run migrate'
+            - docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run ping
+            - docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run migrate
         - name: Integration test
           commands:
             - sem-service start postgres
-            - docker run --net=host -it \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - '  npm run test'
+            - docker run --net=host -it jflaga/demo:$SEMAPHORE_WORKFLOW_ID npm run test
   - name: Push
     task:
       jobs:
         - name: Push
           commands:
-            - docker pull \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID'
-            - docker tag \
-            - '  https://registry.hub.docker.com/v2/demo:$SEMAPHORE_WORKFLOW_ID \'
-            - '  https://registry.hub.docker.com/v2/demo:latest'
-            - docker push \
-            - '  https://registry.hub.docker.com/v2/demo:latest'
+            - docker pull jflaga/demo:$SEMAPHORE_WORKFLOW_ID
+            - docker tag jflaga/demo:$SEMAPHORE_WORKFLOW_ID jflaga/demo:latest
+            - docker push jflaga/demo:latest
       secrets:
         - name: Docker Hub Secret
